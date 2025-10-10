@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Edit Job</h2>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="mb-3">
+                <label class="form-label">Job Title</label>
+                <input type="text" name="title" class="form-control" value="{{ job.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Company</label>
+                <input type="text" name="company" class="form-control" value="{{ job.company }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Apply Link</label>
+                <input type="url" name="apply_link" class="form-control" value="{{ job.apply_link }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Batches (Enter multiple batches separated by commas)</label>
+                <input type="text" name="batch_names" class="form-control" value="{% for batch in job.batches %}{{ batch.name }}{% if not loop.last %}, {% endif %}{% endfor %}">
+                <small class="text-muted">Separate batch years with commas (e.g., 2024, 2025).</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control">{{ job.description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ job.location }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Min Experience (in years)</label>
+                <input type="number" name="min_experience" class="form-control" value="{{ job.min_experience }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Package Range (Min)</label>
+                <input type="number" step="0.01" name="package_min" class="form-control" value="{{ job.package_min }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Package Range (Max)</label>
+                <input type="number" step="0.01" name="package_max" class="form-control" value="{{ job.package_max }}">
+            </div>
+            <div class="mb-3">
+               <label class="form-label">Min Experience (in years)</label>
+                <input type="number" name="min_experience" class="form-control" value="{{ job.min_experience }}" min="0">
+             </div>
+           <div class="mb-3">
+               <label class="form-label">Max Experience (in years)</label>
+               <input type="number" name="max_experience" class="form-control" value="{{ job.max_experience }}" min="0">
+           </div>
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success">Update Job</button>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
