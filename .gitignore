@@ -1,8 +1,44 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+*.egg
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
 *.db
 *.sqlite
+*.sqlite3
+
+# Environment
 .env
-venv/
-instance/
+.env.local
+
+# IDE
+.vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Build
+build/
+dist/
