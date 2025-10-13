@@ -17,20 +17,10 @@ depends_on = None
 
 
 def upgrade():
+    # ### Step 1: Add columns with nullable=True ###
     with op.batch_alter_table('job', schema=None) as batch_op:
-        # Step 1: Add the column with `nullable=True`
         batch_op.add_column(sa.Column('company_name', sa.String(length=200), nullable=True))
-
-    # Step 2: Update existing rows with a default value
-    op.execute("UPDATE job SET company_name = 'Unknown' WHERE company_name IS NULL")
-
-    # Step 3: Alter the column to enforce `NOT NULL` constraint after populating
-    with op.batch_alter_table('job', schema=None) as batch_op:
-        batch_op.alter_column('company_name', nullable=False)
-
-    # Add other columns (unchanged)
-    with op.batch_alter_table('job', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('role', sa.String(length=200), nullable=False))
+        batch_op.add_column(sa.Column('role', sa.String(length=200), nullable=True))
         batch_op.add_column(sa.Column('is_internship', sa.Boolean(), nullable=True))
         batch_op.add_column(sa.Column('is_hackathon', sa.Boolean(), nullable=True))
         batch_op.add_column(sa.Column('salary', sa.Numeric(precision=10, scale=2), nullable=True))
@@ -38,12 +28,24 @@ def upgrade():
         batch_op.add_column(sa.Column('prize_money', sa.Numeric(precision=10, scale=2), nullable=True))
         batch_op.add_column(sa.Column('deadline', sa.DateTime(), nullable=True))
         batch_op.add_column(sa.Column('created_at', sa.DateTime(), nullable=True))
-        batch_op.alter_column('location',
-                              existing_type=sa.VARCHAR(length=200),
-                              nullable=False)
-        batch_op.alter_column('description',
-                              existing_type=sa.TEXT(),
-                              nullable=False)
+
+    # ### Step 2: Populate default values for NULL fields ###
+    op.execute("UPDATE job SET company_name = 'Unknown' WHERE company_name IS NULL")
+    op.execute("UPDATE job SET role = 'Unspecified' WHERE role IS NULL")
+    op.execute("UPDATE job SET is_internship = FALSE WHERE is_internship IS NULL")
+    op.execute("UPDATE job SET is_hackathon = FALSE WHERE is_hackathon IS NULL")
+    op.execute("UPDATE job SET created_at = NOW() WHERE created_at IS NULL")
+
+    # ### Step 3: Enforce NOT NULL constraints ###
+    with op.batch_alter_table('job', schema=None) as batch_op:
+        batch_op.alter_column('company_name', nullable=False)
+        batch_op.alter_column('role', nullable=False)
+        batch_op.alter_column('is_internship', nullable=False)
+        batch_op.alter_column('is_hackathon', nullable=False)
+        batch_op.alter_column('created_at', nullable=False)
+
+    # ### Step 4: Drop unnecessary columns ###
+    with op.batch_alter_table('job', schema=None) as batch_op:
         batch_op.drop_column('posted_date')
         batch_op.drop_column('company')
         batch_op.drop_column('package_max')
@@ -52,13 +54,10 @@ def upgrade():
         batch_op.drop_column('min_experience')
         batch_op.drop_column('package_min')
 
+    # Adjustments for job_batches table (unchanged)
     with op.batch_alter_table('job_batches', schema=None) as batch_op:
-        batch_op.alter_column('job_id',
-                              existing_type=sa.INTEGER(),
-                              nullable=False)
-        batch_op.alter_column('batch_id',
-                              existing_type=sa.INTEGER(),
-                              nullable=False)
+        batch_op.alter_column('job_id', existing_type=sa.INTEGER(), nullable=False)
+        batch_op.alter_column('batch_id', existing_type=sa.INTEGER(), nullable=False)
 
     # ### end Alembic commands ###
 
