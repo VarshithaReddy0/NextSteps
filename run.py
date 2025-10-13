@@ -1,20 +1,24 @@
 import os
 from app import create_app, db
-from app.models import Batch
+from app.models import Admin
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 
-# Add default batches during initialization (if not already present)
-def seed_batches():
+
+def init_admin():
+    """Create default admin if not exists"""
     with app.app_context():
-        default_batches = ['2024', '2025', '2026']
-        for name in default_batches:
-            if not Batch.query.filter_by(name=name).first():
-                db.session.add(Batch(name=name))
-        db.session.commit()
+        admin = Admin.query.filter_by(username='admin').first()
+        if not admin:
+            admin = Admin(username='admin')
+            admin.set_password('admin123')  # Change this in production!
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Default admin created (username: admin, password: admin123)")
+
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        seed_batches()  # Create default batches
+        init_admin()
     app.run(debug=True)

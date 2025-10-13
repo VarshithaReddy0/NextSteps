@@ -1,0 +1,177 @@
+{# Job Type Badge Macro #}
+{% macro render_job_badge(job) %}
+    {% if job.is_hackathon %}
+        <span class="badge badge-job-type badge-hackathon">
+            <i class="bi bi-trophy me-1" aria-hidden="true"></i>Hackathon
+        </span>
+    {% elif job.is_internship %}
+        <span class="badge badge-job-type badge-internship">
+            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Internship
+        </span>
+    {% else %}
+        <span class="badge badge-job-type badge-fulltime">
+            <i class="bi bi-briefcase me-1" aria-hidden="true"></i>Full Time
+        </span>
+    {% endif %}
+{% endmacro %}
+
+{# Compensation Display Macro #}
+{% macro render_compensation(job) %}
+    {% if job.is_hackathon %}
+        {% if job.prize_money %}
+            <span class="text-success fw-semibold">
+                <i class="bi bi-trophy-fill me-1" aria-hidden="true"></i>
+                <span class="sr-only">Prize: </span>{{ job.prize_display }}
+            </span>
+        {% else %}
+            <span class="text-muted">Prize not specified</span>
+        {% endif %}
+    {% elif job.is_internship %}
+        {% if job.stipend %}
+            <span class="text-warning fw-semibold">
+                <i class="bi bi-cash-stack me-1" aria-hidden="true"></i>
+                <span class="sr-only">Stipend: </span>{{ job.stipend_display }}
+            </span>
+        {% else %}
+            <span class="text-muted">
+                <i class="bi bi-cash-stack me-1" aria-hidden="true"></i>
+                Unpaid
+            </span>
+        {% endif %}
+    {% else %}
+        {% if job.salary %}
+            <span class="text-success fw-semibold">
+                <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>
+                <span class="sr-only">Salary: </span>{{ job.salary_display }}
+            </span>
+        {% else %}
+            <span class="text-muted">Salary not disclosed</span>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
+{# Batch Display Macro #}
+{% macro render_batches(job) %}
+    {% if job.batches %}
+        <div class="mb-2">
+            <small class="text-muted">
+                <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>
+                <strong>Eligible Batches:</strong>
+                {% for batch in job.batches %}
+                    <span class="badge bg-secondary ms-1">{{ batch.name }}</span>
+                {% endfor %}
+            </small>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{# Form Field Macro #}
+{% macro render_field(field, label, icon=None, required=False, help_text=None) %}
+    <div class="mb-3">
+        <label class="form-label{% if required %} required{% endif %}" for="{{ field.name }}">
+            {% if icon %}<i class="bi bi-{{ icon }} me-2" aria-hidden="true"></i>{% endif %}
+            {{ label }}
+        </label>
+        
+        {% if field.type == 'select' %}
+            <select class="form-select" 
+                    name="{{ field.name }}" 
+                    id="{{ field.name }}"
+                    {% if required %}required{% endif %}
+                    {% if field.onchange %}onchange="{{ field.onchange }}"{% endif %}>
+                {% for option in field.options %}
+                    <option value="{{ option.value }}" 
+                            {% if option.selected %}selected{% endif %}>
+                        {{ option.label }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% elif field.type == 'textarea' %}
+            <textarea class="form-control" 
+                      name="{{ field.name }}" 
+                      id="{{ field.name }}"
+                      rows="{{ field.rows or 4 }}"
+                      {% if required %}required{% endif %}
+                      {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}>{{ field.value or '' }}</textarea>
+        {% else %}
+            <input type="{{ field.type or 'text' }}" 
+                   class="form-control" 
+                   name="{{ field.name }}" 
+                   id="{{ field.name }}"
+                   {% if field.value %}value="{{ field.value }}"{% endif %}
+                   {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %}
+                   {% if required %}required{% endif %}
+                   {% if field.pattern %}pattern="{{ field.pattern }}"{% endif %}
+                   {% if field.title %}title="{{ field.title }}"{% endif %}
+                   {% if field.step %}step="{{ field.step }}"{% endif %}>
+        {% endif %}
+        
+        {% if help_text %}
+            <div class="form-text">{{ help_text }}</div>
+        {% endif %}
+        <div class="invalid-feedback"></div>
+    </div>
+{% endmacro %}
+
+{# Pagination Macro #}
+{% macro render_pagination(pagination, endpoint, job_type=None, batch=None, search=None, location=None, sort=None) %}
+    {% if pagination.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for(endpoint, page=pagination.prev_num, job_type=job_type, batch=batch, search=search, location=location, sort=sort) }}"
+                           aria-label="Previous page">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for(endpoint, page=page_num, job_type=job_type, batch=batch, search=search, location=location, sort=sort) }}"
+                                   aria-label="Go to page {{ page_num }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" aria-hidden="true">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for(endpoint, page=pagination.next_num, job_type=job_type, batch=batch, search=search, location=location, sort=sort) }}"
+                           aria-label="Next page">
+                            <span class="sr-only">Next</span>
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endmacro %}
+
+{# Loading Button Macro #}
+{% macro render_submit_button(text, icon=None, variant='primary', loading_text='Loading...') %}
+    <button type="submit" 
+            class="btn btn-{{ variant }}" 
+            data-loading-text="{{ loading_text }}">
+        {% if icon %}<i class="bi bi-{{ icon }} me-2" aria-hidden="true"></i>{% endif %}
+        {{ text }}
+    </button>
+{% endmacro %}

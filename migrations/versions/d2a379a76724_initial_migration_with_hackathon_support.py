@@ -1,8 +1,8 @@
-"""Initial migration
+"""Initial migration with hackathon support
 
-Revision ID: 511e825b5af0
+Revision ID: d2a379a76724
 Revises: 
-Create Date: 2025-10-06 18:51:45.279014
+Create Date: 2025-10-12 16:13:16.011756
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '511e825b5af0'
+revision = 'd2a379a76724'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -28,17 +28,18 @@ def upgrade():
     )
     op.create_table('job',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('company', sa.String(length=200), nullable=False),
-    sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('batch', sa.String(length=50), nullable=False),
-    sa.Column('experience_level', sa.String(length=50), nullable=False),
-    sa.Column('package_min', sa.Float(), nullable=False),
-    sa.Column('package_max', sa.Float(), nullable=False),
+    sa.Column('company_name', sa.String(length=200), nullable=False),
+    sa.Column('role', sa.String(length=200), nullable=False),
     sa.Column('location', sa.String(length=200), nullable=False),
-    sa.Column('skills_required', sa.String(length=500), nullable=False),
+    sa.Column('description', sa.Text(), nullable=False),
     sa.Column('apply_link', sa.String(length=500), nullable=False),
-    sa.Column('posted_date', sa.DateTime(), nullable=True),
+    sa.Column('is_internship', sa.Boolean(), nullable=True),
+    sa.Column('is_hackathon', sa.Boolean(), nullable=True),
+    sa.Column('salary', sa.Numeric(precision=10, scale=2), nullable=True),
+    sa.Column('stipend', sa.Numeric(precision=10, scale=2), nullable=True),
+    sa.Column('prize_money', sa.Numeric(precision=10, scale=2), nullable=True),
+    sa.Column('deadline', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )

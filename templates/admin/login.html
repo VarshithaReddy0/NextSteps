@@ -1,35 +1,194 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h4>Admin Login</h4>
-            </div>
-            <div class="card-body">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
+{% block title %}Admin Login - NextSteps{% endblock %}
 
-                <form method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" required>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<style>
+    body {
+        background: linear-gradient(135deg, var(--bg-color) 0%, #e0e7ff 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .login-container {
+        margin-top: -10vh;
+    }
+
+    .login-card {
+        box-shadow: var(--shadow-xl);
+        border: none;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .login-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .login-logo {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-body {
+        padding: 2rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+
+    .form-floating .form-control {
+        border-radius: var(--border-radius-md);
+        border: 2px solid var(--border-color);
+    }
+
+    .form-floating .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-login {
+        background: var(--primary-gradient);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: var(--border-radius-md);
+        width: 100%;
+    }
+
+    .btn-login:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container login-container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card login-card">
+                <div class="login-header">
+                    <div class="login-logo" aria-hidden="true">🔐</div>
+                    <h3 class="mb-0">Admin Login</h3>
+                    <p class="mb-0 opacity-75">NextSteps Administration</p>
+                </div>
+                <div class="login-body">
+                    <form method="POST" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="form-floating mb-3">
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   placeholder="Username"
+                                   required
+                                   autofocus
+                                   autocomplete="username">
+                            <label for="username">
+                                <i class="bi bi-person me-2" aria-hidden="true"></i>Username
+                            </label>
+                            <div class="invalid-feedback">Please enter your username.</div>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="Password"
+                                   required
+                                   autocomplete="current-password">
+                            <label for="password">
+                                <i class="bi bi-key me-2" aria-hidden="true"></i>Password
+                            </label>
+                            <div class="invalid-feedback">Please enter your password.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-login">
+                            <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+                            Login to Dashboard
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+                            Secure administrative access
+                        </small>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
+                </div>
+            </div>
+
+            <!-- Back to Site -->
+            <div class="text-center mt-3">
+                <a href="{{ url_for('main.index') }}"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>
+                    Back to NextSteps
+                </a>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enhanced login form
+document.querySelector('form').addEventListener('submit', function(e) {
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    // Basic validation
+    let isValid = true;
+
+    if (username.value.trim().length < 3) {
+        username.classList.add('is-invalid');
+        isValid = false;
+    } else {
+        username.classList.remove('is-invalid');
+    }
+
+    if (password.value.length < 6) {
+        password.classList.add('is-invalid');
+        isValid = false;
+    } else {
+        password.classList.remove('is-invalid');
+    }
+
+    if (!isValid) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Show loading state
+    NextSteps.showLoading(submitBtn);
+});
+
+// Auto-focus management
+document.addEventListener('DOMContentLoaded', function() {
+    const username = document.getElementById('username');
+    if (username && !username.value) {
+        username.focus();
+    }
+
+    // Handle enter key navigation
+    document.getElementById('username').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('password').focus();
+        }
+    });
+});
+</script>
 {% endblock %}

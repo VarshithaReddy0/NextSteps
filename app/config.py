@@ -3,46 +3,40 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 class Config:
-    # Secret Key
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    # Secret Key for Sessions/CSRF
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///techhire.db'
+    # Database settings
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///techhire.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Fix for Heroku PostgreSQL URL
-    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
+    # Enable CSRF globally
+    WTF_CSRF_ENABLED = False  # CSRF protection is enabled for form
 
-    # Admin credentials
-    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
-    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'admin123'
+    WTF_CSRF_EXEMPT_ROUTES = [  # List of API routes that are exempt from CSRF
+        '/api/subscribe',
+        '/api/unsubscribe',
+        '/api/vapid-public-key',
+    ]
 
-    # Session Security
-    SESSION_COOKIE_SECURE = True  # HTTPS only
-    SESSION_COOKIE_HTTPONLY = True  # No JavaScript access
-    SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
-    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour timeout
-
-    # WTF CSRF Settings
-    WTF_CSRF_TIME_LIMIT = None  # Don't expire CSRF tokens
-    WTF_CSRF_SSL_STRICT = False  # Allow non-HTTPS in development
-
+    # VAPID Keys for Push Notifications
+    VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
+    VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
+    VAPID_CLAIM_EMAIL = os.environ.get('VAPID_CLAIM_EMAIL', 'mailto:admin@example.com')
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SESSION_COOKIE_SECURE = False  # Allow HTTP in development
+    SESSION_COOKIE_SECURE = False
 
 
 class ProductionConfig(Config):
     DEBUG = False
-    SESSION_COOKIE_SECURE = True  # Require HTTPS in production
+    SESSION_COOKIE_SECURE = True
 
 
 config = {
+    'default': Config,
     'development': DevelopmentConfig,
     'production': ProductionConfig,
-    'default': DevelopmentConfig
 }

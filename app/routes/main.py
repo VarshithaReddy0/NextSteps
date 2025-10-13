@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
-
 from app import db
 from app.models import Job, Batch
+from sqlalchemy import or_
 
 bp = Blueprint('main', __name__)
 
@@ -9,46 +9,51 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
-    batch_filter = request.args.get('batch', None)
-    experience = request.args.get('experience', None)
-    sort = request.args.get('sort', 'latest')
+    job_type = request.args.get('job_type', '')
+    batch_filter = request.args.get('batch', '')
+    search = request.args.get('search', '')
 
+    # Base query - only active jobs
     query = Job.query.filter_by(is_active=True)
 
+    # Filter by type
+    if job_type == 'full_time':
+        query = query.filter(Job.is_internship == False, Job.is_hackathon == False)
+    elif job_type == 'internship':
+        query = query.filter(Job.is_internship == True)
+    elif job_type == 'hackathon':
+        query = query.filter(Job.is_hackathon == True)
+
+    # Filter by batch
     if batch_filter:
         query = query.join(Job.batches).filter(Batch.name == batch_filter)
 
-    if experience and experience.isdigit():
-        exp_value = int(experience)
+    # Search in company name or role
+    if search:
+        search_term = f'%{search}%'
         query = query.filter(
-            (Job.min_experience <= exp_value) &
-            ((Job.max_experience >= exp_value) | (Job.max_experience == None))
+            or_(
+                Job.company_name.ilike(search_term),
+                Job.role.ilike(search_term)
+            )
         )
 
-    if sort == 'package_high':
-        query = query.order_by(Job.package_max.desc(), Job.package_min.desc())
-    elif sort == 'package_low':
-        query = query.order_by(Job.package_min.asc(), Job.package_max.asc())
-    else:
-        query = query.order_by(Job.posted_date.desc())
-
-    jobs = query.paginate(page=page, per_page=8)
-
-    # Get unique batches, exclude any with commas, sort descending
-    all_batches = Batch.query.all()
-    batches = sorted(
-        list(set([b.name for b in all_batches if ',' not in b.name])),
-        reverse=True
+    # Order by newest first
+    jobs = query.order_by(Job.created_at.desc()).paginate(
+        page=page,
+        per_page=10,
+        error_out=False
     )
 
-    experiences = ['0', '1', '2', '3', '4', '5']
+    # Get unique batches for filter (sorted descending)
+    all_batches = Batch.query.order_by(Batch.name.desc()).all()
+    batches = [batch.name for batch in all_batches]
 
     return render_template(
         'index.html',
         jobs=jobs,
         batches=batches,
-        experiences=experiences,
         current_batch=batch_filter,
-        current_experience=experience,
-        current_sort=sort
+        current_job_type=job_type,
+        current_search=search
     )

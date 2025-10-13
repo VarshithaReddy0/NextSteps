@@ -1,123 +1,485 @@
 {% extends "base.html" %}
+{% from "macros.html" import render_job_badge, render_compensation, render_batches, render_pagination %}
+
+{% block title %}NextSteps - Find Jobs, Internships & Hackathons for Freshers{% endblock %}
+{% block description %}Discover the latest job opportunities, internships, and hackathons specifically for fresh graduates. Filter by batch year, location, and opportunity type.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 2rem 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.8;
+    }
+
+    /* Notification Panel Styles */
+    .notification-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .notification-icon {
+        font-size: 2.5rem;
+        color: #ffd700;
+        animation: ring 2s ease-in-out infinite;
+    }
+
+    @keyframes ring {
+        0%, 100% { transform: rotate(0deg); }
+        10%, 30% { transform: rotate(-10deg); }
+        20%, 40% { transform: rotate(10deg); }
+    }
+
+    .notification-card .form-select {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: none;
+    }
+
+    .notification-status {
+        display: block;
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        .notification-panel {
+            margin-top: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <h5>Filters</h5>
+<!-- Hero Section -->
+<section class="hero-section" role="banner">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="hero-title">Never Miss an Opportunity Again</h1>
+                <p class="hero-subtitle">
+                    While others wait, you act. Discover fresh opportunities daily and stay ahead
+                    in the competitive job market. Your dream role is just one click away.
+                </p>
             </div>
-            <div class="card-body">
-                <form method="GET">
-                    <div class="mb-3">
-                     <label class="form-label">Batch</label>
-                       <select name="batch" class="form-select">
-                         <option value="">All Batches</option>
-                         {% for batch in batches %}
-                          <option value="{{ batch }}" {% if batch == current_batch %}selected{% endif %}>
-                          {{ batch }}
-                         </option>
-                       {% endfor %}
-                       </select>
-                      </div>
 
-                    <div class="mb-3">
-                       <label class="form-label">Experience Level</label>
-                         <select name="experience" class="form-select">
-                            <option value="">All Levels</option>
-                              {% for exp in experiences %}
-                             <option value="{{ exp }}" {% if exp == current_experience %}selected{% endif %}>
-                                {{ exp }}
-                               </option>
-                             {% endfor %}
-                          </select>
-                    </div>
+            <div class="col-lg-4">
+                <!-- Notification Panel -->
+                <div class="notification-panel">
+                    <div class="notification-card">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-bell notification-icon"></i>
+                            <h6 class="text-white mb-1">Get Job Alerts</h6>
+                            <small class="text-light opacity-75">Never miss opportunities for your batch</small>
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Sort By</label>
-                        <select name="sort" class="form-select">
-                            <option value="latest" {% if current_sort == 'latest' %}selected{% endif %}>Latest</option>
-                            <option value="package_high" {% if current_sort == 'package_high' %}selected{% endif %}>Highest Package</option>
-                            <option value="package_low" {% if current_sort == 'package_low' %}selected{% endif %}>Lowest Package</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Ad Space -->
-        <div class="card mt-3">
-            <div class="card-body text-center bg-light">
-                <p class="text-muted">Advertisement</p>
-                <div style="height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-                    <span class="text-muted">Ad Space 1</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-9">
-        <h2>Job Openings ({{ jobs.items|length }} jobs found)</h2> <!-- Use `jobs.items` for paginated results -->
-
-        {% for job in jobs.items %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h5 class="card-title">{{ job.title }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ job.company }}</h6>
-                            <p class="card-text">{{ job.description[:150] }}...</p>
-                            <small class="text-muted">
-                                <strong>Batches:</strong>
-                                {% for batch in job.batches %}
-                                    {{ batch.name }}{% if not loop.last %}, {% endif %}
+                        <div class="mb-3">
+                            <select class="form-select form-select-sm" id="notification-batch">
+                                <option value="">Select your batch</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch }}">{{ batch }} Batch</option>
                                 {% endfor %}
-                                | <strong>Experience:</strong> {{ job.min_experience or "Not specified" }}
-                                | <strong>Location:</strong> {{ job.location or "Not specified" }}
+                            </select>
+                        </div>
+
+                        <div class="text-center">
+                            <button class="btn btn-light btn-sm w-100" id="enable-notifications">
+                                <i class="bi bi-bell me-1"></i>
+                                Enable Alerts
+                            </button>
+                            <button class="btn btn-outline-light btn-sm w-100 mt-2" id="disable-notifications" style="display: none;">
+                                <i class="bi bi-bell-slash me-1"></i>
+                                Disable Alerts
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-2">
+                            <small class="notification-status text-light opacity-75">
+                                Choose your batch to get started
                             </small>
                         </div>
-                        <div class="col-md-4 text-end">
-                            <h4 class="text-success">{{ job.package_range }}</h4>
-                            <a href="{{ job.apply_link }}" target="_blank" class="btn btn-primary">Apply Now</a>
-                        </div>
                     </div>
                 </div>
             </div>
-        {% endfor %}
+        </div>
+    </div>
+</section>
 
-        {% if not jobs.items %}
-            <div class="text-center">
-                <h4>No jobs found</h4>
-                <p class="text-muted">Try adjusting your filters</p>
+<div class="container">
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card filter-card">
+                <div class="card-header">
+                    <i class="bi bi-funnel me-2" aria-hidden="true"></i>
+                    <span>Filters</span>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('main.index') }}" role="search" aria-label="Filter opportunities">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label" for="search">
+                                <i class="bi bi-search me-2" aria-hidden="true"></i>Search
+                            </label>
+                            <input type="search"
+                                   class="form-control"
+                                   name="search"
+                                   id="search"
+                                   placeholder="Company or role..."
+                                   value="{{ current_search or '' }}"
+                                   autocomplete="off"
+                                   aria-describedby="search-help">
+                            <div id="search-help" class="form-text">Search by company name, role, or keywords</div>
+                        </div>
+
+                        <!-- Job Type Filter -->
+                        <div class="mb-3">
+                            <label class="form-label" for="job_type">
+                                <i class="bi bi-briefcase me-2" aria-hidden="true"></i>Opportunity Type
+                            </label>
+                            <select class="form-select" name="job_type" id="job_type">
+                                <option value="">All Types</option>
+                                <option value="full_time" {% if current_job_type == 'full_time' %}selected{% endif %}>
+                                    Full Time Jobs
+                                </option>
+                                <option value="internship" {% if current_job_type == 'internship' %}selected{% endif %}>
+                                    Internships
+                                </option>
+                                <option value="hackathon" {% if current_job_type == 'hackathon' %}selected{% endif %}>
+                                    Hackathons
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Batch Filter -->
+                        <div class="mb-3">
+                            <label class="form-label" for="batch">
+                                <i class="bi bi-calendar-check me-2" aria-hidden="true"></i>Batch Year
+                            </label>
+                            <select class="form-select" name="batch" id="batch">
+                                <option value="">All Batches</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch }}" {% if current_batch == batch %}selected{% endif %}>
+                                    {{ batch }} Batch
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Location Filter -->
+                        <div class="mb-3">
+                            <label class="form-label" for="location">
+                                <i class="bi bi-geo-alt me-2" aria-hidden="true"></i>Location
+                            </label>
+                            <select class="form-select" name="location" id="location">
+                                <option value="">All Locations</option>
+                                <option value="remote" {% if current_location == 'remote' %}selected{% endif %}>Remote</option>
+                                <option value="bangalore" {% if current_location == 'bangalore' %}selected{% endif %}>Bangalore</option>
+                                <option value="hyderabad" {% if current_location == 'hyderabad' %}selected{% endif %}>Hyderabad</option>
+                                <option value="pune" {% if current_location == 'pune' %}selected{% endif %}>Pune</option>
+                                <option value="mumbai" {% if current_location == 'mumbai' %}selected{% endif %}>Mumbai</option>
+                                <option value="delhi" {% if current_location == 'delhi' %}selected{% endif %}>Delhi NCR</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-check-circle me-2" aria-hidden="true"></i>Apply Filters
+                        </button>
+
+                        {% if current_job_type or current_batch or current_search or current_location %}
+                        <a href="{{ url_for('main.index') }}"
+                           class="btn btn-outline-secondary w-100"
+                           aria-label="Clear all filters">
+                            <i class="bi bi-x-circle me-2" aria-hidden="true"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
             </div>
-        {% endif %}
 
-        <!-- Pagination -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mt-4">
-                {% if jobs.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.index', page=jobs.prev_num, batch=current_batch, experience=current_experience, sort=current_sort) }}">Previous</a>
-                    </li>
-                {% endif %}
-                {% for page_num in jobs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                    {% if page_num %}
-                        <li class="page-item {% if page_num == jobs.page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('main.index', page=page_num, batch=current_batch, experience=current_experience, sort=current_sort) }}">{{ page_num }}</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">…</span></li>
+            <!-- Quick Filters -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2" aria-hidden="true"></i>Quick Filters
+                </div>
+                <div class="card-body p-2">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.index', job_type='hackathon') }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-trophy me-1" aria-hidden="true"></i>Active Hackathons
+                        </a>
+                        <a href="{{ url_for('main.index', job_type='internship') }}"
+                           class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Paid Internships
+                        </a>
+                        <a href="{{ url_for('main.index', location='remote') }}"
+                           class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-house me-1" aria-hidden="true"></i>Remote Jobs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs List -->
+        <div class="col-lg-9">
+            <div class="page-header">
+                <h2>
+                    <i class="bi bi-briefcase-fill me-2" aria-hidden="true"></i>
+                    Available Opportunities
+                    {% if jobs.total %}
+                        <span class="badge">{{ jobs.total }}</span>
                     {% endif %}
+                </h2>
+
+                <!-- Sort Options -->
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="window.location.href=this.value">
+                        {% set args = request.args.to_dict() %}
+                        {% set _ = args.update({'sort': 'newest'}) %}
+                        <option value="{{ url_for('main.index', **args) }}"
+                                {% if request.args.get('sort', 'newest') == 'newest' %}selected{% endif %}>
+                            Newest First
+                        </option>
+                        {% set args = request.args.to_dict() %}
+                        {% set _ = args.update({'sort': 'company'}) %}
+                        <option value="{{ url_for('main.index', **args) }}"
+                                {% if request.args.get('sort') == 'company' %}selected{% endif %}>
+                            Company A-Z
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            {% if jobs.items %}
+                <!-- Results Summary -->
+                <div class="alert alert-info mb-4" role="status" aria-live="polite">
+                    <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+                    Showing {{ jobs.items|length }} of {{ jobs.total }} opportunities
+                    {% if current_search or current_job_type or current_batch or current_location %}
+                        matching your filters
+                    {% endif %}
+                </div>
+
+                <!-- Job Cards -->
+                {% for job in jobs.items %}
+                <article class="card job-card mb-4" itemscope itemtype="https://schema.org/JobPosting">
+                    <div class="card-body p-4">
+                        <div class="d-flex">
+                            <!-- Company Logo -->
+                            <div class="company-logo me-4">
+                                <div class="logo-placeholder"
+                                     role="img"
+                                     aria-label="{{ job.company_name }} logo">
+                                    {{ job.company_name[0].upper() }}
+                                </div>
+                            </div>
+
+                            <!-- Job Details -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h3 class="company-name" itemprop="hiringOrganization">
+                                            {{ job.company_name }}
+                                            {% if job.is_new %}
+                                                <span class="badge-new" aria-label="New opportunity">NEW</span>
+                                            {% endif %}
+                                        </h3>
+                                        <p class="job-title" itemprop="title">{{ job.role }}</p>
+                                    </div>
+                                    <div>
+                                        {{ render_job_badge(job) }}
+                                    </div>
+                                </div>
+
+                                <!-- Job Meta Information -->
+                                <div class="job-meta mb-3">
+                                    <span itemprop="jobLocation">
+                                        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                                        {{ job.location }}
+                                    </span>
+
+                                    {{ render_compensation(job) }}
+
+                                    {% if job.is_hackathon and job.deadline %}
+                                    <span class="text-danger">
+                                        <i class="bi bi-calendar-x" aria-hidden="true"></i>
+                                        <span class="sr-only">Registration deadline: </span>
+                                        {{ job.deadline.strftime('%b %d, %Y') }}
+                                    </span>
+                                    {% endif %}
+
+                                    <span class="text-muted">
+                                        <i class="bi bi-clock" aria-hidden="true"></i>
+                                        <span class="sr-only">Posted on: </span>
+                                        <time datetime="{{ job.created_at.isoformat() }}">
+                                            {{ job.created_at.strftime('%b %d, %Y') }}
+                                        </time>
+                                    </span>
+                                </div>
+
+                                <!-- Eligible Batches -->
+                                {{ render_batches(job) }}
+
+                                <!-- Description -->
+                                <div class="job-description mb-3" itemprop="description">
+                                    {{ job.description[:200] }}
+                                    {% if job.description|length > 200 %}
+                                        <span class="text-muted">...
+                                            <button class="btn btn-link p-0 text-decoration-none"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#desc-{{ job.id }}"
+                                                    aria-expanded="false"
+                                                    aria-controls="desc-{{ job.id }}">
+                                                Read more
+                                            </button>
+                                        </span>
+                                        <div class="collapse mt-2" id="desc-{{ job.id }}">
+                                            {{ job.description[200:] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Apply Button -->
+                                <div class="text-end">
+                                    <a href="{{ job.apply_link }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-apply"
+                                       onclick="gtag('event', 'apply_click', {'job_id': '{{ job.id }}', 'company': '{{ job.company_name }}'});"
+                                       aria-label="{% if job.is_hackathon %}Register for {{ job.role }} at {{ job.company_name }}{% else %}Apply for {{ job.role }} at {{ job.company_name }}{% endif %}">
+                                        <i class="bi bi-box-arrow-up-right me-2" aria-hidden="true"></i>
+                                        {% if job.is_hackathon %}Register Now{% else %}Apply Now{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
                 {% endfor %}
-                {% if jobs.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.index', page=jobs.next_num, batch=current_batch, experience=current_experience, sort=current_sort) }}">Next</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+
+                <!-- Pagination -->
+                {{ render_pagination(jobs, 'main.index', job_type=current_job_type, batch=current_batch, search=current_search, location=current_location) }}
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox" aria-hidden="true"></i>
+                            <h4>No Opportunities Found</h4>
+                            <p>
+                                {% if current_search or current_job_type or current_batch or current_location %}
+                                    We couldn't find any opportunities matching your current filters.
+                                    Try adjusting your search criteria or check back later for new postings.
+                                {% else %}
+                                    No opportunities are currently available.
+                                    Please check back soon for new postings!
+                                {% endif %}
+                            </p>
+                            {% if current_job_type or current_batch or current_search or current_location %}
+                            <a href="{{ url_for('main.index') }}"
+                               class="btn btn-primary mt-3"
+                               aria-label="Clear all filters and view all opportunities">
+                                <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>View All Opportunities
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load notifications.js for push notification handling -->
+<script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+
+<script>
+    // Analytics tracking
+    document.addEventListener('DOMContentLoaded', function() {
+        // Track apply button clicks
+        document.querySelectorAll('.btn-apply').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const jobCard = this.closest('.job-card');
+                if (jobCard) {
+                    const company = jobCard.querySelector('.company-name')?.textContent.trim();
+                    const role = jobCard.querySelector('.job-title')?.textContent.trim();
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'job_application', {
+                            'company': company,
+                            'role': role,
+                            'source': 'nextsteps'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Track filter usage
+        const filterForm = document.querySelector('.filter-card form');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function() {
+                const formData = new FormData(this);
+                const filters = Object.fromEntries(formData.entries());
+
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'filter_used', {
+                        'filters': JSON.stringify(filters)
+                    });
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

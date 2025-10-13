@@ -7,9 +7,10 @@ from app import db
 # Association Table for Job-Batches Many-to-Many Relationship
 job_batches = db.Table(
     'job_batches',
-    db.Column('job_id', db.Integer, db.ForeignKey('job.id')),
-    db.Column('batch_id', db.Integer, db.ForeignKey('batch.id'))
+    db.Column('job_id', db.Integer, db.ForeignKey('job.id'), primary_key=True),
+    db.Column('batch_id', db.Integer, db.ForeignKey('batch.id'), primary_key=True)
 )
+
 
 class Admin(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,25 +38,97 @@ class Batch(db.Model):
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    company = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
+    company_name = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(200), nullable=False)
+    location = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
     apply_link = db.Column(db.String(500), nullable=False)
-    location = db.Column(db.String(200))
-    min_experience = db.Column(db.Integer)
-    max_experience = db.Column(db.Integer)  # NEW FIELD
-    package_min = db.Column(db.Float)
-    package_max = db.Column(db.Float)
-    posted_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Job type flags
+    is_internship = db.Column(db.Boolean, default=False)
+    is_hackathon = db.Column(db.Boolean, default=False)
+
+    # Compensation fields
+    salary = db.Column(db.Numeric(10, 2), nullable=True)
+    stipend = db.Column(db.Numeric(10, 2), nullable=True)
+    prize_money = db.Column(db.Numeric(10, 2), nullable=True)
+
+    # Hackathon specific
+    deadline = db.Column(db.DateTime, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
+    # Relationship with Batch
     batches = db.relationship('Batch', secondary=job_batches, backref='jobs')
 
     @property
-    def package_range(self):
-        if self.package_min and self.package_max:
-            return f"₹{self.package_min:.2f} - ₹{self.package_max:.2f} LPA"
-        return "Not specified"
+    def salary_display(self):
+        if self.salary:
+            return f"₹{int(self.salary):,} LPA"
+        return None
+
+    @property
+    def stipend_display(self):
+        if self.stipend:
+            return f"₹{int(self.stipend):,}/month"
+        return None
+
+    @property
+    def prize_display(self):
+        if self.prize_money:
+            return f"₹{int(self.prize_money):,}"
+        return None
+
+    @property
+    def is_new(self):
+        return (datetime.utcnow() - self.created_at).days <= 7
+
+    @property
+    def job_type(self):
+        if self.is_hackathon:
+            return "Hackathon"
+        elif self.is_internship:
+            return "Internship"
+        else:
+            return "Full Time"
+
+    @property
+    def batch_names(self):
+        return ', '.join([batch.name for batch in self.batches])
 
     def __repr__(self):
-        return f'<Job {self.title} at {self.company}>'
+        return f'<Job {self.role} at {self.company_name}>'
+
+
+# ==================== NEW: PUSH NOTIFICATION MODEL ====================
+class PushSubscription(db.Model):
+    """Store user push notification subscriptions"""
+    __tablename__ = 'push_subscriptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    endpoint = db.Column(db.String(500), unique=True, nullable=False, index=True)
+    p256dh = db.Column(db.String(200), nullable=False)
+    auth = db.Column(db.String(50), nullable=False)
+    batch = db.Column(db.String(10), nullable=False, index=True)
+
+    # Optional: Track user info
+    user_agent = db.Column(db.String(200))
+    ip_address = db.Column(db.String(50))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_notified = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True, index=True)
+
+    def __repr__(self):
+        return f'<PushSubscription {self.batch} - {self.endpoint[:30]}...>'
+
+    def to_dict(self):
+        """Convert to format needed by pywebpush"""
+        return {
+            'endpoint': self.endpoint,
+            'keys': {
+                'p256dh': self.p256dh,
+                'auth': self.auth
+            }
+        }
