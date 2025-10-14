@@ -45,18 +45,23 @@ def create_app(config_name='default'):
             setattr(request, '_csrf_exempt', True)  # Dynamically disable CSRF for exempted routes
 
     # Security headers
+    # Security headers
     @app.after_request
     def add_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['Content-Security-Policy'] = (
-            "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; font-src 'self' cdn.jsdelivr.net data:; "
-            "img-src 'self' data: blob:; connect-src 'self' cdn.jsdelivr.net; object-src 'none'; base-uri 'self';"
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://plausible.io https://www.googletagmanager.com https://www.google-analytics.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "font-src 'self' https://cdn.jsdelivr.net data:; "
+            "img-src 'self' data: blob: https:; "
+            "connect-src 'self' https://cdn.jsdelivr.net https://plausible.io https://www.google-analytics.com; "
+            "object-src 'none'; "
+            "base-uri 'self';"
         )
         return response
-
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
