@@ -361,8 +361,7 @@ def test_notification():
         return redirect(url_for('main.index'))
 
     try:
-        from app.utils.push_notifications import send_notification_to_batgit add .
-ch
+        from app.utils.push_notifications import send_notification_to_batch
         success, failed = send_notification_to_batch(
             batch_name="2025",  # or whatever batch you want to test
             title="🧪 Test Notification",
