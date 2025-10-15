@@ -3,6 +3,7 @@ set -o errexit
 
 pip install -r requirements.txt
 
+# Add missing column
 python -c "
 import os
 import psycopg2
@@ -17,10 +18,13 @@ conn = psycopg2.connect(
     port=url.port
 )
 cur = conn.cursor()
-cur.execute('DROP TABLE IF EXISTS alembic_version;')
-conn.commit()
+try:
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS subscription_json TEXT;')
+    conn.commit()
+    print('Added subscription_json column')
+except Exception as e:
+    print(f'Column may already exist: {e}')
 conn.close()
-print('Reset migration tracking')
 "
 
 flask db stamp head
