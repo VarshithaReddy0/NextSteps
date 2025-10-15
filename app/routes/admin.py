@@ -186,7 +186,7 @@ def add_job():
 
     # ==================== SEND PUSH NOTIFICATIONS ====================
     try:
-        from app.utils import notify_batch_async
+        from app.utils.push_notifications import notify_batch_async
         notify_batch_async(job)
         current_app.logger.info(f"Notification queued for new job: {job.company_name}")
         flash(f'New {job.job_type} added successfully! Notifications sent.', 'success')
@@ -312,7 +312,7 @@ def custom_notifications():
                 return redirect(url_for('admin.custom_notifications'))
 
             # Send notifications
-            from app.utils import send_custom_notification_async
+            from app.utils.push_notifications import send_custom_notification_async
             send_custom_notification_async(
                 title=title,
                 message=message,
@@ -363,7 +363,7 @@ def test_notification():
     try:
         from app.utils.push_notifications import send_notification_to_batch
         success, failed = send_notification_to_batch(
-            batch_name="2025",  # or whatever batch you want to test
+            batch_name="2025",  # Change this to match a batch in your database
             title="🧪 Test Notification",
             body="This is a test notification from admin",
             url="/",
