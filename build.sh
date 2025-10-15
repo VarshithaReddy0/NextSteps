@@ -3,7 +3,7 @@ set -o errexit
 
 pip install -r requirements.txt
 
-# Add missing column
+# Add all missing columns
 python -c "
 import os
 import psycopg2
@@ -20,10 +20,16 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 try:
     cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS subscription_json TEXT;')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS batch_name VARCHAR(50);')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS user_agent TEXT;')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45);')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS last_notified TIMESTAMP;')
+    cur.execute('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;')
     conn.commit()
-    print('Added subscription_json column')
+    print('Added all missing columns')
 except Exception as e:
-    print(f'Column may already exist: {e}')
+    print(f'Error: {e}')
 conn.close()
 "
 
