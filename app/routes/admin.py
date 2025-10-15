@@ -336,9 +336,9 @@ def custom_notifications():
     # Get subscription stats
     total_subscribers = PushSubscription.query.filter_by(is_active=True).count()
     batch_stats = db.session.query(
-        PushSubscription.batch_name,
+        PushSubscription.batch,
         db.func.count(PushSubscription.id)
-    ).filter_by(is_active=True).group_by(PushSubscription.batch_name).all()
+    ).filter_by(is_active=True).group_by(PushSubscription.batch).all()
 
     stats = {
         'total': total_subscribers,

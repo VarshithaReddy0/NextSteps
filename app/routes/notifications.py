@@ -46,7 +46,7 @@ def subscribe():
 
         if existing:
             # Update existing subscription
-            existing.batch_name = batch
+            existing.batch = batch
             existing.subscription_json = json.dumps(subscription_info)
             existing.is_active = True
             current_app.logger.info(f"Updated existing subscription for batch {batch}")
@@ -55,7 +55,7 @@ def subscribe():
             subscription = PushSubscription(
                 endpoint=endpoint,
                 subscription_json=json.dumps(subscription_info),
-                batch_name=batch,
+                batch=batch,
                 user_agent=request.headers.get('User-Agent'),
                 ip_address=request.remote_addr
             )
