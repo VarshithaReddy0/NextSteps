@@ -103,25 +103,20 @@ class Job(db.Model):
 
 # ==================== PUSH NOTIFICATION MODEL ====================
 class PushSubscription(db.Model):
-    """Store user push notification subscriptions"""
     __tablename__ = 'push_subscriptions'
 
     id = db.Column(db.Integer, primary_key=True)
     endpoint = db.Column(db.String(500), unique=True, nullable=False, index=True)
 
-    # Store full subscription JSON for easier handling
-    subscription_json = db.Column(db.Text, nullable=False)
+    # Match database schema
+    batch = db.Column(db.String(10), nullable=False, index=True)  # NOT batch_name
+    subscription_json = db.Column(db.Text)  # Make nullable since it's empty
 
-    # Batch name (e.g., "2024", "2025")
-    batch_name = db.Column(db.String(10), nullable=False, index=True)
-
-    # Optional: Track user info
     user_agent = db.Column(db.String(200))
     ip_address = db.Column(db.String(50))
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_notified = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
     def __repr__(self):
-        return f'<PushSubscription {self.batch_name} - {self.endpoint[:30]}...>'
+        return f'<PushSubscription {self.batch} - {self.endpoint[:30]}...>'
