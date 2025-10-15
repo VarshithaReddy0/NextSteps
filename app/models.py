@@ -107,11 +107,8 @@ class PushSubscription(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     endpoint = db.Column(db.String(500), unique=True, nullable=False, index=True)
-
-    # Match database schema
-    batch = db.Column(db.String(10), nullable=False, index=True)  # NOT batch_name
-    subscription_json = db.Column(db.Text)  # Make nullable since it's empty
-
+    batch = db.Column(db.String(10), nullable=False, index=True)
+    subscription_json = db.Column(db.Text)
     user_agent = db.Column(db.String(200))
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
