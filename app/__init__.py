@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -11,7 +11,7 @@ from app.config import config
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
-csrf = CSRFProtect()  # Initialize CSRF protection
+csrf = CSRFProtect()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -42,9 +42,8 @@ def create_app(config_name='default'):
     def exempt_routes_from_csrf():
         exempt_routes = app.config.get('WTF_CSRF_EXEMPT_ROUTES', [])
         if request.path in exempt_routes:
-            setattr(request, '_csrf_exempt', True)  # Dynamically disable CSRF for exempted routes
+            setattr(request, '_csrf_exempt', True)
 
-    # Security headers
     # Security headers
     @app.after_request
     def add_security_headers(response):
@@ -62,6 +61,17 @@ def create_app(config_name='default'):
             "base-uri 'self';"
         )
         return response
+
+    # ==================== NEW: SERVICE WORKER ROUTE ====================
+    @app.route('/sw.js')
+    def service_worker():
+        """Serve service worker from root path (required for scope)"""
+        return send_from_directory(
+            os.path.join(app.static_folder, 'js'),
+            'sw.js',
+            mimetype='application/javascript'
+        )
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):

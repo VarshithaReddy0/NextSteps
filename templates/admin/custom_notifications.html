@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Send Custom Notifications{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📢 Send Custom Notifications</h2>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mb-3">← Back</a>
+
+    <div class="alert alert-info">
+        <strong>Total Subscribers:</strong> {{ stats.total }}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label>Type</label>
+                    <select class="form-select" name="notification_type" required>
+                        <option value="info">📢 Info</option>
+                        <option value="success">✅ Success</option>
+                        <option value="warning">⚠️ Warning</option>
+                        <option value="alert">🚨 Urgent</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Title *</label>
+                    <input type="text" class="form-control" name="title" required minlength="3" maxlength="100">
+                </div>
+
+                <div class="mb-3">
+                    <label>Message *</label>
+                    <textarea class="form-control" name="message" rows="4" required minlength="10" maxlength="300"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Target Batches (hold Ctrl for multiple)</label>
+                    <select class="form-select" name="batches" multiple size="5">
+                        <option value="">All Batches</option>
+                        {% for batch in batches %}
+                        <option value="{{ batch.name }}">{{ batch.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>URL (optional)</label>
+                    <input type="url" class="form-control" name="url" value="/">
+                </div>
+
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Send now?')">
+                    📤 Send Notification
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

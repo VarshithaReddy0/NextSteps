@@ -101,16 +101,19 @@ class Job(db.Model):
         return f'<Job {self.role} at {self.company_name}>'
 
 
-# ==================== NEW: PUSH NOTIFICATION MODEL ====================
+# ==================== PUSH NOTIFICATION MODEL ====================
 class PushSubscription(db.Model):
     """Store user push notification subscriptions"""
     __tablename__ = 'push_subscriptions'
 
     id = db.Column(db.Integer, primary_key=True)
     endpoint = db.Column(db.String(500), unique=True, nullable=False, index=True)
-    p256dh = db.Column(db.String(200), nullable=False)
-    auth = db.Column(db.String(50), nullable=False)
-    batch = db.Column(db.String(10), nullable=False, index=True)
+
+    # Store full subscription JSON for easier handling
+    subscription_json = db.Column(db.Text, nullable=False)
+
+    # Batch name (e.g., "2024", "2025")
+    batch_name = db.Column(db.String(10), nullable=False, index=True)
 
     # Optional: Track user info
     user_agent = db.Column(db.String(200))
@@ -121,14 +124,4 @@ class PushSubscription(db.Model):
     is_active = db.Column(db.Boolean, default=True, index=True)
 
     def __repr__(self):
-        return f'<PushSubscription {self.batch} - {self.endpoint[:30]}...>'
-
-    def to_dict(self):
-        """Convert to format needed by pywebpush"""
-        return {
-            'endpoint': self.endpoint,
-            'keys': {
-                'p256dh': self.p256dh,
-                'auth': self.auth
-            }
-        }
+        return f'<PushSubscription {self.batch_name} - {self.endpoint[:30]}...>'

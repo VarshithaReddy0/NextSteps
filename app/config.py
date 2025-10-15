@@ -12,18 +12,21 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Enable CSRF globally
-    WTF_CSRF_ENABLED = False  # CSRF protection is enabled for form
+    WTF_CSRF_ENABLED = False
 
-    WTF_CSRF_EXEMPT_ROUTES = [  # List of API routes that are exempt from CSRF
+    WTF_CSRF_EXEMPT_ROUTES = [
         '/api/subscribe',
         '/api/unsubscribe',
         '/api/vapid-public-key',
     ]
 
-    # VAPID Keys for Push Notifications
+    # ==================== VAPID Configuration for Push Notifications ====================
     VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
     VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
-    VAPID_CLAIM_EMAIL = os.environ.get('VAPID_CLAIM_EMAIL', 'mailto:admin@example.com')
+    VAPID_CLAIMS = {
+        "sub": os.environ.get('VAPID_CLAIM_EMAIL', 'mailto:admin@nextsteps.com')
+    }
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -36,7 +39,7 @@ class ProductionConfig(Config):
 
 
 config = {
-    'default': Config,
+    'default': DevelopmentConfig,
     'development': DevelopmentConfig,
     'production': ProductionConfig,
 }

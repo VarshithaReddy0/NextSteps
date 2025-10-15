@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import Admin, Job, Batch
+from app.models import Admin, Job, Batch, PushSubscription
 from datetime import datetime
 import re
 
@@ -76,26 +76,6 @@ def process_batches(batch_input, job):
 
         if batch not in job.batches:
             job.batches.append(batch)
-
-
-# ==================== NEW: NOTIFICATION HELPER ====================
-def send_notifications_for_job(job):
-    """Send push notifications to all eligible batch subscribers"""
-    try:
-        from app.routes.notifications import notify_batch
-
-        total_sent = 0
-        for batch in job.batches:
-            count = notify_batch(batch.name, job)
-            total_sent += count
-
-        if total_sent > 0:
-            current_app.logger.info(f"Sent {total_sent} notifications for job {job.id}")
-            return total_sent
-        return 0
-    except Exception as e:
-        current_app.logger.error(f"Error sending notifications: {str(e)}")
-        return 0
 
 
 # ==================== ROUTES ====================
@@ -204,13 +184,15 @@ def add_job():
     db.session.add(job)
     db.session.commit()
 
-    # ==================== NEW: SEND PUSH NOTIFICATIONS ====================
-    notifications_sent = send_notifications_for_job(job)
-
-    if notifications_sent > 0:
-        flash(f"New {job.job_type} added successfully! {notifications_sent} notifications sent.", "success")
-    else:
-        flash(f"New {job.job_type} added successfully!", "success")
+    # ==================== SEND PUSH NOTIFICATIONS ====================
+    try:
+        from app.utils import notify_batch_async
+        notify_batch_async(job)
+        current_app.logger.info(f"Notification queued for new job: {job.company_name}")
+        flash(f'New {job.job_type} added successfully! Notifications sent.', 'success')
+    except Exception as e:
+        current_app.logger.error(f"Failed to send notifications: {e}")
+        flash(f'New {job.job_type} added successfully!', 'success')
 
     return redirect(url_for('admin.dashboard'))
 
@@ -299,3 +281,72 @@ def delete_job(job_id):
     db.session.commit()
     flash(f"{job_type} deleted successfully!", "success")
     return redirect(url_for('admin.dashboard'))
+
+
+# ==================== CUSTOM NOTIFICATIONS ====================
+
+@bp.route('/dashboard/notifications', methods=['GET', 'POST'])
+@login_required
+def custom_notifications():
+    """Send custom push notifications to users"""
+    if not isinstance(current_user, Admin):
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        try:
+            title = request.form.get('title', '').strip()
+            message = request.form.get('message', '').strip()
+            target_batches = request.form.getlist('batches')
+            target_batches = [b for b in target_batches if b]
+            notification_type = request.form.get('notification_type', 'info')
+            url = request.form.get('url', '/').strip()
+
+            # Validation
+            if not title or len(title) < 3:
+                flash('Title must be at least 3 characters', 'danger')
+                return redirect(url_for('admin.custom_notifications'))
+
+            if not message or len(message) < 10:
+                flash('Message must be at least 10 characters', 'danger')
+                return redirect(url_for('admin.custom_notifications'))
+
+            # Send notifications
+            from app.utils import send_custom_notification_async
+            send_custom_notification_async(
+                title=title,
+                message=message,
+                target_batches=target_batches if target_batches else None,
+                notification_type=notification_type,
+                url=url
+            )
+
+            flash(f'Custom notification sent successfully!', 'success')
+            current_app.logger.info(f"Admin sent custom notification: {title}")
+
+        except Exception as e:
+            current_app.logger.error(f"Error sending custom notification: {e}")
+            flash('Failed to send notification. Please try again.', 'danger')
+
+        return redirect(url_for('admin.custom_notifications'))
+
+    # GET request - show form
+    batches = Batch.query.order_by(Batch.name.desc()).all()
+
+    # Get subscription stats
+    total_subscribers = PushSubscription.query.filter_by(is_active=True).count()
+    batch_stats = db.session.query(
+        PushSubscription.batch_name,
+        db.func.count(PushSubscription.id)
+    ).filter_by(is_active=True).group_by(PushSubscription.batch_name).all()
+
+    stats = {
+        'total': total_subscribers,
+        'by_batch': {batch: count for batch, count in batch_stats}
+    }
+
+    return render_template(
+        'admin/custom_notifications.html',
+        batches=batches,
+        stats=stats
+    )

@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Send Notifications{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📢 Send Manual Notification</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.send_notification') }}">
+                        <div class="mb-3">
+                            <label for="batch" class="form-label">Target Batch</label>
+                            <select name="batch" id="batch" class="form-select" required>
+                                <option value="all">📣 All Batches</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch.name }}">
+                                    {{ batch.name }} ({{ subscriber_counts.get(batch.name, 0) }} subscribers)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Notification Title</label>
+                            <input 
+                                type="text" 
+                                name="title" 
+                                id="title" 
+                                class="form-control" 
+                                placeholder="e.g., Important Announcement"
+                                maxlength="50"
+                                required
+                            >
+                            <small class="text-muted">Max 50 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea 
+                                name="message" 
+                                id="message" 
+                                class="form-control" 
+                                rows="4"
+                                placeholder="e.g., Career fair on Friday at 10 AM. Don't miss it!"
+                                maxlength="120"
+                                required
+                            ></textarea>
+                            <small class="text-muted">Max 120 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="url" class="form-label">Link (Optional)</label>
+                            <input 
+                                type="text" 
+                                name="url" 
+                                id="url" 
+                                class="form-control" 
+                                placeholder="/"
+                                value="/"
+                            >
+                            <small class="text-muted">Where users will go when they click</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            🚀 Send Notification
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    📊 Subscriber Stats
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for batch in batches %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ batch.name }}</span>
+                        <span class="badge bg-primary">{{ subscriber_counts.get(batch.name, 0) }}</span>
+                    </li>
+                    {% endfor %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <strong>Total Active</strong>
+                        <strong class="badge bg-success">{{ subscriber_counts.values()|sum }}</strong>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">💡 Tips</div>
+                <div class="card-body">
+                    <ul class="small">
+                        <li>Keep titles short and clear</li>
+                        <li>Use emojis sparingly</li>
+                        <li>Test with one batch first</li>
+                        <li>Check notification permissions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

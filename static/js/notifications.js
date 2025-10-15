@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Register Service Worker
-    navigator.serviceWorker.register('/static/js/sw.js')
+navigator.serviceWorker.register('/sw.js')
         .then(function (registration) {
             console.log('Service Worker registered:', registration);
             swRegistration = registration;
