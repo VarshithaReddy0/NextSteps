@@ -350,3 +350,29 @@ def custom_notifications():
         batches=batches,
         stats=stats
     )
+
+
+@bp.route('/test-notification')
+@login_required
+def test_notification():
+    """Test sending notification to all subscribers"""
+    if not isinstance(current_user, Admin):
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for('main.index'))
+
+    try:
+        from app.utils.push_notifications import send_notification_to_batgit add .
+ch
+        success, failed = send_notification_to_batch(
+            batch_name="2025",  # or whatever batch you want to test
+            title="🧪 Test Notification",
+            body="This is a test notification from admin",
+            url="/",
+            tag="test"
+        )
+        flash(f'Test sent: {success} success, {failed} failed', 'info')
+    except Exception as e:
+        flash(f'Test failed: {str(e)}', 'danger')
+        current_app.logger.error(f"Test notification error: {e}")
+
+    return redirect(url_for('admin.dashboard'))

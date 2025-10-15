@@ -115,5 +115,10 @@ class PushSubscription(db.Model):
     last_notified = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True, index=True)
 
+    def to_dict(self):
+        """Convert subscription to dictionary for webpush"""
+        import json
+        return json.loads(self.subscription_json)
+
     def __repr__(self):
         return f'<PushSubscription {self.batch} - {self.endpoint[:30]}...>'
