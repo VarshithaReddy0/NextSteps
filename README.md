@@ -1,4 +1,11 @@
-# NextSteps - Job Portal for Freshers
+#<img width="500" height="500" alt="NextSteps" src="https://github.com/user-attachments/assets/3982d494-f346-47a8-b812-3e6fa50e5994" />
+ NextSteps - Job Portal for Freshers
+
+
+
+Live link : https://nextsteps.onrender.com/
+
+<img width="1082" height="873" alt="Screenshot 2025-10-15 193659" src="https://github.com/user-attachments/assets/fc6e6e1e-d03e-4978-9deb-ab1559802a63" />
 
 A Flask-based job portal specifically designed for fresh graduates and college students to discover and apply for entry-level opportunities.
 
@@ -8,9 +15,7 @@ A Flask-based job portal specifically designed for fresh graduates and college s
 - **Batch-wise Filtering**: Filter jobs by graduation year (2024, 2025, 2026)
 - **Experience-based Search**: Find jobs matching your experience level
 - **Package Sorting**: Sort by salary range (high to low, low to high)
-- **Admin Panel**: Secure admin interface for posting and managing jobs
 - **Responsive Design**: Mobile-friendly Bootstrap interface
-- **Analytics**: Google Analytics integration for visitor tracking
 
 ## 🛠️ Tech Stack
 
@@ -21,17 +26,3 @@ A Flask-based job portal specifically designed for fresh graduates and college s
 - **Forms**: Flask-WTF with CSRF protection
 - **Database Migrations**: Flask-Migrate with Alembic
 - **Deployment**: Render.com
-- **Analytics**: Google Analytics
-
-## 📋 Prerequisites
-
-- Python 3.11+
-- PostgreSQL (for production)
-- Git
-
-## 🔧 Local Development Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/VarshithaReddy0/NextSteps.git
-   cd NextSteps
